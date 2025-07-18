@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cyberpunk IPv6 Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta rel="preload" href="https://wilburwilliams.uk/assets/background.png" as="image">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url("https://wilburwilliams.uk/assets/background.png");
+            background-size: cover;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .card {
+            position: relative;
+            background: rgba(10, 10, 20, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            width: 350px;
+            transition: 0.5s all;
+            z-index: 1;
+        }
+
+        /* ✅ Green pulsing glow */
+        .card.green {
+            border: 1px solid #00ff99;
+            box-shadow: 0 0 20px #00ff99;
+            animation: pulseGreen 2s infinite alternate;
+        }
+
+        /* ✅ Red pulsing glow */
+        .card.red {
+            border: 1px solid #ff0033;
+            box-shadow: 0 0 20px #ff0033;
+            animation: pulseRed 2s infinite alternate;
+        }
+
+        /* ✅ Brighter on hover */
+        .card.green:hover {
+            box-shadow: 0 0 40px #00ff99, 0 0 80px rgba(0, 255, 153, 0.5);
+        }
+
+        .card.red:hover {
+            box-shadow: 0 0 40px #ff0033, 0 0 80px rgba(255, 0, 51, 0.5);
+        }
+
+        /* Pulse animations */
+        @keyframes pulseGreen {
+            from {
+                box-shadow: 0 0 15px #00ff99;
+            }
+
+            to {
+                box-shadow: 0 0 30px #00ff99;
+            }
+        }
+
+        @keyframes pulseRed {
+            from {
+                box-shadow: 0 0 15px #ff0033;
+            }
+
+            to {
+                box-shadow: 0 0 30px #ff0033;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            background: linear-gradient(45deg, #ff00cc, #3333ff);
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        h1 {
+            margin: 10px 0;
+            font-size: 1.8em;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        a {
+            color: #00ff99;
+        }
+
+        .status-box {
+            margin-top: 15px;
+            border: 1px solid currentColor;
+            border-radius: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .ips {
+            margin: 15px 0;
+            line-height: 1.4em;
+            font-family: monospace;
+            font-size: 1em;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #00ff99;
+        }
+
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #ff0080, #7928ca);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            font-size: 0.8em;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card" id="card">
+        <div class="badge" id="badge">Checking...</div>
+        <h1 id="title">Detecting...</h1>
+        <div id="provider">Provider: ...</div>
+        <div class="ips">
+            <div id="ipv4">IPv4: ...</div>
+            <div id="ipv6">IPv6: ...</div>
+        </div>
+    </div>
+    <div class="footer">parts of design stolen from <a href="https://special.exulan.com.au">special.exulan.com.au</a>
+    </div>
+
+    <script>
+        async function getIP(url) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error();
+                return await res.text();
+            } catch {
+                return null;
+            }
+        }
+        async function test() {
+            const res = await fetch("https://ipapi.co/json/");
+            const provider = await res.json();
+            if (provider) {
+                document.getElementById("provider").innerHTML =
+                    `Provider: ${provider.org} (<a target="_blank" href="https://bgp.tools/${provider.asn}">${provider.asn}</a>)`;
+            }
+            const ipv4 = await getIP("https://4.icanhazip.com");
+            const ipv6 = await getIP("https://6.icanhazip.com");
+            document.getElementById("ipv4").textContent = `IPv4: ${ipv4 || "Not detected"}`;
+            document.getElementById("ipv6").textContent = `IPv6: ${ipv6 || "Not detected"}`;
+            const card = document.getElementById("card");
+            const title = document.getElementById("title");
+            const badge = document.getElementById("badge");
+            if (ipv6) {
+                card.classList.remove("red");
+                card.classList.add("green");
+                title.textContent = "IPv6 Detected!";
+                badge.textContent = ":D";
+            } else {
+                card.classList.remove("green");
+                card.classList.add("red");
+                title.textContent = "No IPv6 Detected";
+                badge.textContent = ":c";
+            }
+        }
+        test();
+    </script>
+</body>
+
+</html>
